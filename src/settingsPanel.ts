@@ -65,7 +65,8 @@ export class SettingsPanel {
   private async sendConfig() {
     const providers = this.configManager.getProviders();
     const activeProviderId = this.configManager.getActiveProviderId();
-    const promptTemplate = this.configManager.getPromptTemplate();
+    const promptMode = this.configManager.getPromptMode();
+    const promptTemplate = vscode.workspace.getConfiguration('commitMessageAuto').get('promptTemplate', '');
     const language = this.configManager.getLanguage();
     const maxTitleLength = this.configManager.getMaxTitleLength();
 
@@ -74,6 +75,7 @@ export class SettingsPanel {
       data: {
         providers,
         activeProviderId,
+        promptMode,
         promptTemplate,
         language,
         maxTitleLength
@@ -130,7 +132,8 @@ export class SettingsPanel {
       data: {
         providers,
         activeProviderId,
-        promptTemplate: this.configManager.getPromptTemplate(),
+        promptTemplate: vscode.workspace.getConfiguration('commitMessageAuto').get('promptTemplate', ''),
+        promptMode: this.configManager.getPromptMode(),
         language: this.configManager.getLanguage(),
         maxTitleLength: this.configManager.getMaxTitleLength()
       }
@@ -139,7 +142,8 @@ export class SettingsPanel {
     vscode.window.showInformationMessage('Provider deleted');
   }
 
-  private async updateGlobalConfig(data: { promptTemplate: string; language: string; maxTitleLength: number }) {
+  private async updateGlobalConfig(data: { promptMode: string; promptTemplate: string; language: string; maxTitleLength: number }) {
+    await vscode.workspace.getConfiguration('commitMessageAuto').update('promptMode', data.promptMode, vscode.ConfigurationTarget.Global);
     await vscode.workspace.getConfiguration('commitMessageAuto').update('promptTemplate', data.promptTemplate, vscode.ConfigurationTarget.Global);
     await vscode.workspace.getConfiguration('commitMessageAuto').update('language', data.language, vscode.ConfigurationTarget.Global);
     await vscode.workspace.getConfiguration('commitMessageAuto').update('maxTitleLength', data.maxTitleLength, vscode.ConfigurationTarget.Global);
@@ -165,7 +169,7 @@ export class SettingsPanel {
     button:hover { background: var(--vscode-button-hoverBackground); }
     button.secondary { background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); }
     button.secondary:hover { background: var(--vscode-button-secondaryHoverBackground); }
-    input, textarea { width: 100%; padding: 8px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); margin: 5px 0; box-sizing: border-box; }
+    input, textarea, select { width: 100%; padding: 8px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); margin: 5px 0; box-sizing: border-box; }
     textarea { min-height: 200px; font-family: monospace; }
     label { display: block; margin-top: 10px; font-weight: bold; }
     .form-group { margin-bottom: 15px; }
@@ -173,7 +177,7 @@ export class SettingsPanel {
   </style>
 </head>
 <body>
-  <h1>Git Commit Message Settings</h1>
+  <h1>Commit Message Auto Settings</h1>
 
   <div class="section">
     <h2>Providers</h2>
@@ -214,16 +218,28 @@ export class SettingsPanel {
   <div class="section">
     <h2>Global Settings</h2>
     <div class="form-group">
+      <label>Prompt Mode:</label>
+      <select id="promptMode" onchange="togglePromptTemplate()">
+        <option value="low">Low: Generate title only</option>
+        <option value="medium">Medium: Generate title + summary by module</option>
+        <option value="high">High: Generate title + summary by file</option>
+        <option value="custom">Custom: Use custom prompt template</option>
+      </select>
+    </div>
+    <div class="form-group" id="promptTemplateGroup" style="display:none;">
+      <label>Custom Prompt Template:</label>
+      <textarea id="promptTemplate"></textarea>
+      <small style="color: var(--vscode-descriptionForeground);">
+        Available variables: {branch}, {files}, {diff}, {lang}
+      </small>
+    </div>
+    <div class="form-group">
       <label>Language:</label>
       <input type="text" id="language" placeholder="e.g., English, 中文">
     </div>
     <div class="form-group">
       <label>Max Title Length:</label>
       <input type="number" id="maxTitleLength">
-    </div>
-    <div class="form-group">
-      <label>Prompt Template:</label>
-      <textarea id="promptTemplate"></textarea>
     </div>
     <button onclick="saveGlobalSettings()">Save Global Settings</button>
   </div>
@@ -266,9 +282,17 @@ export class SettingsPanel {
       \`).join('');
 
       // Render global settings
+      document.getElementById('promptMode').value = config.promptMode;
       document.getElementById('language').value = config.language;
       document.getElementById('maxTitleLength').value = config.maxTitleLength;
       document.getElementById('promptTemplate').value = config.promptTemplate;
+      togglePromptTemplate();
+    }
+
+    function togglePromptTemplate() {
+      const promptMode = document.getElementById('promptMode').value;
+      const promptTemplateGroup = document.getElementById('promptTemplateGroup');
+      promptTemplateGroup.style.display = promptMode === 'custom' ? 'block' : 'none';
     }
 
     function showAddProviderForm() {
@@ -340,13 +364,14 @@ export class SettingsPanel {
     }
 
     function saveGlobalSettings() {
+      const promptMode = document.getElementById('promptMode').value;
       const language = document.getElementById('language').value;
       const maxTitleLength = parseInt(document.getElementById('maxTitleLength').value);
       const promptTemplate = document.getElementById('promptTemplate').value;
 
       vscode.postMessage({
         command: 'updateGlobalConfig',
-        data: { language, maxTitleLength, promptTemplate }
+        data: { promptMode, language, maxTitleLength, promptTemplate }
       });
     }
   </script>

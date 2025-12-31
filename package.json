@@ -12,10 +12,15 @@
   "keywords": [
     "git",
     "commit",
+    "commit message",
     "ai",
+    "artificial intelligence",
     "conventional commits",
     "openai",
-    "commit message"
+    "gpt",
+    "auto commit",
+    "generate commit",
+    "scm"
   ],
   "engines": {
     "vscode": "^1.85.0"
@@ -56,10 +61,22 @@
           "default": "",
           "description": "Active provider ID"
         },
+        "commitMessageAuto.promptMode": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "custom"],
+          "enumDescriptions": [
+            "Low: Generate title only",
+            "Medium: Generate title + summary of changes by module",
+            "High: Generate title + summary of changes by file, with special changes listed separately",
+            "Custom: Use custom prompt template"
+          ],
+          "default": "low",
+          "description": "Commit message generation mode"
+        },
         "commitMessageAuto.promptTemplate": {
           "type": "string",
           "default": "You are a git commit message generator. Based on the staged changes, generate a concise commit message following the Conventional Commits specification.\n\n## Context\nBranch: {branch}\nStaged files:\n{files}\n\nStaged changes:\n{diff}\n\n## Requirements\n1. Format: `type(scope): subject` where scope is optional\n2. Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert\n3. Subject: Clear, concise description in {lang}\n4. Maximum length: 72 characters for the first line\n5. Use `!` for breaking changes if needed (e.g., `feat!: breaking change`)\n6. Use imperative mood (e.g., \"add\" not \"added\" or \"adds\")\n7. Do NOT include body or footer, only the title line\n\n## Output\nGenerate ONLY the commit message title, nothing else. No explanations, no markdown, no quotes.",
-          "description": "Prompt template for generating commit messages",
+          "description": "Custom prompt template (used when promptMode is 'custom')",
           "editPresentation": "multilineText"
         },
         "commitMessageAuto.language": {

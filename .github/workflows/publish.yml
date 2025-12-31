@@ -24,5 +24,10 @@ jobs:
       - name: Compile
         run: pnpm run compile
 
+      - name: Update version from tag
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          npm version $VERSION --no-git-tag-version
+
       - name: Publish to VS Code Marketplace
         run: npx @vscode/vsce publish -p ${{ secrets.VSCE_TOKEN }}
