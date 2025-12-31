@@ -1,0 +1,102 @@
+{
+  "name": "git-commit-message",
+  "displayName": "Git Commit Message Generator",
+  "description": "Generate conventional commit messages using AI",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "SCM Providers"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "git-commit-message.generate",
+        "title": "Generate Commit Message",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "git-commit-message.openSettings",
+        "title": "Git Commit Message: Open Settings"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "git-commit-message.generate",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Git Commit Message",
+      "properties": {
+        "gitCommitMessage.activeProvider": {
+          "type": "string",
+          "default": "",
+          "description": "Active provider ID"
+        },
+        "gitCommitMessage.promptTemplate": {
+          "type": "string",
+          "default": "You are a git commit message generator. Based on the staged changes, generate a concise commit message following the Conventional Commits specification.\n\n## Context\nBranch: {branch}\nStaged files:\n{files}\n\nStaged changes:\n{diff}\n\n## Requirements\n1. Format: `type(scope): subject` where scope is optional\n2. Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert\n3. Subject: Clear, concise description in {lang}\n4. Maximum length: 72 characters for the first line\n5. Use `!` for breaking changes if needed (e.g., `feat!: breaking change`)\n6. Use imperative mood (e.g., \"add\" not \"added\" or \"adds\")\n7. Do NOT include body or footer, only the title line\n\n## Output\nGenerate ONLY the commit message title, nothing else. No explanations, no markdown, no quotes.",
+          "description": "Prompt template for generating commit messages",
+          "editPresentation": "multilineText"
+        },
+        "gitCommitMessage.language": {
+          "type": "string",
+          "default": "English",
+          "description": "Target language for commit messages"
+        },
+        "gitCommitMessage.maxTitleLength": {
+          "type": "number",
+          "default": 72,
+          "description": "Maximum length for commit message title"
+        },
+        "gitCommitMessage.providers": {
+          "type": "array",
+          "default": [],
+          "description": "List of AI providers",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier (UUID)"
+              },
+              "name": {
+                "type": "string",
+                "description": "Display name"
+              },
+              "baseUrl": {
+                "type": "string",
+                "description": "API base URL"
+              },
+              "model": {
+                "type": "string",
+                "description": "Model name"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  },
+  "packageManager": "pnpm@10.23.0",
+  "license": "MIT"
+}
