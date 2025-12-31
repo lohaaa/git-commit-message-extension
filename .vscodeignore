@@ -2,8 +2,11 @@
 .vscode-test/**
 src/**
 .gitignore
+.git/**
 tsconfig.json
 **/*.map
 **/*.ts
 node_modules/**
 pnpm-lock.yaml
+DESIGN.md
+.github/**
