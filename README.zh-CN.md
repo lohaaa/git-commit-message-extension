@@ -1,4 +1,4 @@
-# Git Commit Message Generator
+# Commit Message Auto
 
 [English](./README.md) | 简体中文
 
@@ -24,7 +24,7 @@
 
 ### 添加 Provider
 
-1. 运行命令 `Git Commit Message: Open Settings` 打开设置面板
+1. 运行命令 `Commit Message Auto: Open Settings` 打开设置面板
 2. 点击 "Add Provider" 按钮
 3. 填写以下信息：
    - Name：Provider 显示名称

@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const git = gitExtension.getAPI(1);
 
-  const generateCommand = vscode.commands.registerCommand('git-commit-message.generate', async () => {
+  const generateCommand = vscode.commands.registerCommand('commit-message-auto.generate', async () => {
     const repository = git.repositories.find((repo: any) => {
       return vscode.window.activeTextEditor?.document.uri.fsPath.startsWith(repo.rootUri.fsPath) ||
              vscode.workspace.workspaceFolders?.some(folder => folder.uri.fsPath === repo.rootUri.fsPath);
@@ -45,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  const settingsCommand = vscode.commands.registerCommand('git-commit-message.openSettings', () => {
+  const settingsCommand = vscode.commands.registerCommand('commit-message-auto.openSettings', () => {
     SettingsPanel.show(context, configManager);
   });
 

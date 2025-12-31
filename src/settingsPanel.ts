@@ -23,8 +23,8 @@ export class SettingsPanel {
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'gitCommitMessageSettings',
-      'Git Commit Message Settings',
+      'commitMessageAutoSettings',
+      'Commit Message Auto Settings',
       vscode.ViewColumn.One,
       { enableScripts: true }
     );
@@ -105,7 +105,7 @@ export class SettingsPanel {
       model: data.model
     };
 
-    await vscode.workspace.getConfiguration('gitCommitMessage').update('providers', providers, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration('commitMessageAuto').update('providers', providers, vscode.ConfigurationTarget.Global);
 
     if (data.apiKey) {
       await this.configManager.setApiKey(data.id, data.apiKey);
@@ -117,7 +117,7 @@ export class SettingsPanel {
 
   private async deleteProvider(id: string) {
     const providers = this.configManager.getProviders().filter(p => p.id !== id);
-    await vscode.workspace.getConfiguration('gitCommitMessage').update('providers', providers, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration('commitMessageAuto').update('providers', providers, vscode.ConfigurationTarget.Global);
 
     let activeProviderId = this.configManager.getActiveProviderId();
     if (activeProviderId === id) {
@@ -140,9 +140,9 @@ export class SettingsPanel {
   }
 
   private async updateGlobalConfig(data: { promptTemplate: string; language: string; maxTitleLength: number }) {
-    await vscode.workspace.getConfiguration('gitCommitMessage').update('promptTemplate', data.promptTemplate, vscode.ConfigurationTarget.Global);
-    await vscode.workspace.getConfiguration('gitCommitMessage').update('language', data.language, vscode.ConfigurationTarget.Global);
-    await vscode.workspace.getConfiguration('gitCommitMessage').update('maxTitleLength', data.maxTitleLength, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration('commitMessageAuto').update('promptTemplate', data.promptTemplate, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration('commitMessageAuto').update('language', data.language, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration('commitMessageAuto').update('maxTitleLength', data.maxTitleLength, vscode.ConfigurationTarget.Global);
     vscode.window.showInformationMessage('Settings saved');
   }
 

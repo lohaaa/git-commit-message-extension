@@ -1,4 +1,4 @@
-# Git Commit Message Generator
+# Commit Message Auto
 
 English | [简体中文](./README.zh-CN.md)
 
@@ -24,7 +24,7 @@ Generate conventional commit messages using AI in VS Code.
 
 ### Add a Provider
 
-1. Run command `Git Commit Message: Open Settings` to open the settings panel
+1. Run command `Commit Message Auto: Open Settings` to open the settings panel
 2. Click the "Add Provider" button
 3. Fill in the following information:
    - Name: Display name for the provider

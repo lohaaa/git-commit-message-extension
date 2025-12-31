@@ -1,6 +1,6 @@
 {
-  "name": "git-commit-message",
-  "displayName": "Git Commit Message Generator",
+  "name": "commit-message-auto",
+  "displayName": "Commit Message Auto",
   "description": "Generate conventional commit messages using AI",
   "version": "0.1.0",
   "publisher": "lohaaa",
@@ -30,49 +30,49 @@
   "contributes": {
     "commands": [
       {
-        "command": "git-commit-message.generate",
+        "command": "commit-message-auto.generate",
         "title": "Generate Commit Message",
         "icon": "$(sparkle)"
       },
       {
-        "command": "git-commit-message.openSettings",
-        "title": "Git Commit Message: Open Settings"
+        "command": "commit-message-auto.openSettings",
+        "title": "Commit Message Auto: Open Settings"
       }
     ],
     "menus": {
       "scm/title": [
         {
-          "command": "git-commit-message.generate",
+          "command": "commit-message-auto.generate",
           "group": "navigation",
           "when": "scmProvider == git"
         }
       ]
     },
     "configuration": {
-      "title": "Git Commit Message",
+      "title": "Commit Message Auto",
       "properties": {
-        "gitCommitMessage.activeProvider": {
+        "commitMessageAuto.activeProvider": {
           "type": "string",
           "default": "",
           "description": "Active provider ID"
         },
-        "gitCommitMessage.promptTemplate": {
+        "commitMessageAuto.promptTemplate": {
           "type": "string",
           "default": "You are a git commit message generator. Based on the staged changes, generate a concise commit message following the Conventional Commits specification.\n\n## Context\nBranch: {branch}\nStaged files:\n{files}\n\nStaged changes:\n{diff}\n\n## Requirements\n1. Format: `type(scope): subject` where scope is optional\n2. Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert\n3. Subject: Clear, concise description in {lang}\n4. Maximum length: 72 characters for the first line\n5. Use `!` for breaking changes if needed (e.g., `feat!: breaking change`)\n6. Use imperative mood (e.g., \"add\" not \"added\" or \"adds\")\n7. Do NOT include body or footer, only the title line\n\n## Output\nGenerate ONLY the commit message title, nothing else. No explanations, no markdown, no quotes.",
           "description": "Prompt template for generating commit messages",
           "editPresentation": "multilineText"
         },
-        "gitCommitMessage.language": {
+        "commitMessageAuto.language": {
           "type": "string",
           "default": "English",
           "description": "Target language for commit messages"
         },
-        "gitCommitMessage.maxTitleLength": {
+        "commitMessageAuto.maxTitleLength": {
           "type": "number",
           "default": 72,
           "description": "Maximum length for commit message title"
         },
-        "gitCommitMessage.providers": {
+        "commitMessageAuto.providers": {
           "type": "array",
           "default": [],
           "description": "List of AI providers",
