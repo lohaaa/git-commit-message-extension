@@ -54,14 +54,12 @@ Staged changes:
 7. Each bullet point should summarize related changes in that module
 
 ## Output Format
-\`\`\`
 type(scope): subject
 
 - module1: summary of changes
 - module2: summary of changes
-\`\`\`
 
-Generate the commit message following this format. No extra explanations.`,
+Generate the commit message following this format. Do not wrap it in markdown code fences. No extra explanations.`,
 
     high: `You are a git commit message generator. Based on the staged changes, generate a detailed commit message with title and body following the Conventional Commits specification.
 
@@ -84,7 +82,6 @@ Staged changes:
 8. If there are special/breaking changes, list them separately under "Breaking Changes" or "Special Notes"
 
 ## Output Format
-\`\`\`
 type(scope): subject
 
 - path/to/file1: summary of changes
@@ -92,9 +89,8 @@ type(scope): subject
 
 Breaking Changes:
 - description of breaking change if any
-\`\`\`
 
-Generate the commit message following this format. No extra explanations.`
+Generate the commit message following this format. Do not wrap it in markdown code fences. No extra explanations.`
   };
 
   getActiveProviderId(): string {
@@ -143,6 +139,10 @@ Generate the commit message following this format. No extra explanations.`
     }
 
     return this.PRESET_PROMPTS[mode as keyof typeof this.PRESET_PROMPTS] || this.PRESET_PROMPTS.low;
+  }
+
+  getPresetPrompts(): Record<'low' | 'medium' | 'high', string> {
+    return { ...this.PRESET_PROMPTS };
   }
 
   getPromptMode(): string {

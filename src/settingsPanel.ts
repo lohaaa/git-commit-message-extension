@@ -67,6 +67,7 @@ export class SettingsPanel {
     const activeProviderId = this.configManager.getActiveProviderId();
     const promptMode = this.configManager.getPromptMode();
     const promptTemplate = vscode.workspace.getConfiguration('commitMessageAuto').get('promptTemplate', '');
+    const builtinPrompts = this.configManager.getPresetPrompts();
     const language = this.configManager.getLanguage();
     const maxTitleLength = this.configManager.getMaxTitleLength();
 
@@ -77,6 +78,7 @@ export class SettingsPanel {
         activeProviderId,
         promptMode,
         promptTemplate,
+        builtinPrompts,
         language,
         maxTitleLength
       }
@@ -127,17 +129,7 @@ export class SettingsPanel {
       await this.configManager.setActiveProvider(activeProviderId);
     }
 
-    this.panel.webview.postMessage({
-      command: 'configData',
-      data: {
-        providers,
-        activeProviderId,
-        promptTemplate: vscode.workspace.getConfiguration('commitMessageAuto').get('promptTemplate', ''),
-        promptMode: this.configManager.getPromptMode(),
-        language: this.configManager.getLanguage(),
-        maxTitleLength: this.configManager.getMaxTitleLength()
-      }
-    });
+    await this.sendConfig();
 
     vscode.window.showInformationMessage('Provider deleted');
   }
@@ -169,9 +161,14 @@ export class SettingsPanel {
     button:hover { background: var(--vscode-button-hoverBackground); }
     button.secondary { background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); }
     button.secondary:hover { background: var(--vscode-button-secondaryHoverBackground); }
+    button.icon-button { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; margin: 0; }
+    button.icon-button svg { width: 15px; height: 15px; fill: currentColor; }
     input, textarea, select { width: 100%; padding: 8px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); margin: 5px 0; box-sizing: border-box; }
     textarea { min-height: 200px; font-family: monospace; }
+    textarea[readonly] { color: var(--vscode-descriptionForeground); }
     label { display: block; margin-top: 10px; font-weight: bold; }
+    .label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .label-row label { margin-top: 10px; }
     .form-group { margin-bottom: 15px; }
     .badge { display: inline-block; background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 10px; }
   </style>
@@ -226,10 +223,17 @@ export class SettingsPanel {
         <option value="custom">Custom: Use custom prompt template</option>
       </select>
     </div>
-    <div class="form-group" id="promptTemplateGroup" style="display:none;">
-      <label>Custom Prompt Template:</label>
-      <textarea id="promptTemplate"></textarea>
-      <small style="color: var(--vscode-descriptionForeground);">
+    <div class="form-group" id="promptTemplateGroup">
+      <div class="label-row">
+        <label id="promptTemplateLabel">Prompt Template:</label>
+        <button class="secondary icon-button" type="button" title="Copy prompt" aria-label="Copy prompt" onclick="copyPromptTemplate()">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M4 1.75A1.75 1.75 0 0 1 5.75 0h6.5A1.75 1.75 0 0 1 14 1.75v8.5A1.75 1.75 0 0 1 12.25 12h-6.5A1.75 1.75 0 0 1 4 10.25v-8.5ZM5.75 1.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h6.5a.25.25 0 0 0 .25-.25v-8.5a.25.25 0 0 0-.25-.25h-6.5ZM2 5.75C2 4.784 2.784 4 3.75 4H4v1.5h-.25a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h6.5a.25.25 0 0 0 .25-.25V14H12v.25A1.75 1.75 0 0 1 10.25 16h-6.5A1.75 1.75 0 0 1 2 14.25v-8.5Z"></path>
+          </svg>
+        </button>
+      </div>
+      <textarea id="promptTemplate" oninput="updateCustomPromptDraft()"></textarea>
+      <small id="promptTemplateHelp" style="color: var(--vscode-descriptionForeground);">
         Available variables: {branch}, {files}, {diff}, {lang}
       </small>
     </div>
@@ -247,6 +251,7 @@ export class SettingsPanel {
   <script>
     const vscode = acquireVsCodeApi();
     let config = null;
+    let customPromptDraft = '';
 
     window.addEventListener('message', event => {
       const message = event.data;
@@ -285,14 +290,57 @@ export class SettingsPanel {
       document.getElementById('promptMode').value = config.promptMode;
       document.getElementById('language').value = config.language;
       document.getElementById('maxTitleLength').value = config.maxTitleLength;
-      document.getElementById('promptTemplate').value = config.promptTemplate;
+      customPromptDraft = config.promptTemplate || '';
       togglePromptTemplate();
     }
 
     function togglePromptTemplate() {
       const promptMode = document.getElementById('promptMode').value;
-      const promptTemplateGroup = document.getElementById('promptTemplateGroup');
-      promptTemplateGroup.style.display = promptMode === 'custom' ? 'block' : 'none';
+      const promptTemplate = document.getElementById('promptTemplate');
+      const promptTemplateLabel = document.getElementById('promptTemplateLabel');
+      const promptTemplateHelp = document.getElementById('promptTemplateHelp');
+
+      if (promptMode === 'custom') {
+        promptTemplate.readOnly = false;
+        promptTemplate.value = customPromptDraft;
+        promptTemplateLabel.textContent = 'Custom Prompt Template:';
+        promptTemplateHelp.textContent = 'Available variables: {branch}, {files}, {diff}, {lang}';
+        return;
+      }
+
+      promptTemplate.readOnly = true;
+      promptTemplate.value = (config.builtinPrompts && config.builtinPrompts[promptMode]) || '';
+      promptTemplateLabel.textContent = getPromptModeLabel(promptMode) + ' Built-in Prompt:';
+      promptTemplateHelp.textContent = 'Built-in prompt is read-only. Use the copy button to copy it as Markdown.';
+    }
+
+    function updateCustomPromptDraft() {
+      const promptMode = document.getElementById('promptMode').value;
+      if (promptMode === 'custom') {
+        customPromptDraft = document.getElementById('promptTemplate').value;
+      }
+    }
+
+    async function copyPromptTemplate() {
+      const promptTemplate = document.getElementById('promptTemplate');
+      const text = promptTemplate.value;
+
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (error) {
+        promptTemplate.focus();
+        promptTemplate.select();
+        document.execCommand('copy');
+      }
+    }
+
+    function getPromptModeLabel(promptMode) {
+      const labels = {
+        low: 'Low',
+        medium: 'Medium',
+        high: 'High'
+      };
+      return labels[promptMode] || promptMode;
     }
 
     function showAddProviderForm() {
@@ -367,7 +415,7 @@ export class SettingsPanel {
       const promptMode = document.getElementById('promptMode').value;
       const language = document.getElementById('language').value;
       const maxTitleLength = parseInt(document.getElementById('maxTitleLength').value);
-      const promptTemplate = document.getElementById('promptTemplate').value;
+      const promptTemplate = customPromptDraft;
 
       vscode.postMessage({
         command: 'updateGlobalConfig',

@@ -6,6 +6,7 @@ import { ScmWriter } from './scmWriter';
 import { GenerationQueue } from './generationQueue';
 import { ConfigManager } from './configManager';
 import { SettingsPanel } from './settingsPanel';
+import { formatGeneratedCommitMessage } from './commitMessageFormatter';
 
 let outputChannel: vscode.OutputChannel;
 const queue = new GenerationQueue();
@@ -102,6 +103,7 @@ async function generateCommitMessage(
       branch,
       lang: language
     });
+    const maxLength = configManager.getMaxTitleLength();
 
     // Clear input box
     await scmWriter.clearInputBox(repository);
@@ -109,6 +111,7 @@ async function generateCommitMessage(
     // Generate with progress
     const abortController = new AbortController();
     let generatedMessage = '';
+    let generationCancelled = false;
 
     await vscode.window.withProgress(
       {
@@ -126,10 +129,11 @@ async function generateCommitMessage(
         try {
           for await (const chunk of client.streamChatCompletion(prompt, abortController.signal)) {
             generatedMessage += chunk;
-            await scmWriter.writeToInputBox(repository, generatedMessage);
+            await scmWriter.writeToInputBox(repository, formatGeneratedCommitMessage(generatedMessage, maxLength));
           }
         } catch (error: any) {
           if (error.name === 'AbortError') {
+            generationCancelled = true;
             outputChannel.appendLine('Generation cancelled by user');
             return;
           }
@@ -138,16 +142,10 @@ async function generateCommitMessage(
       }
     );
 
-    // Post-process: truncate if too long
-    if (generatedMessage) {
-      const maxLength = configManager.getMaxTitleLength();
-      const lines = generatedMessage.split('\n');
-      const firstLine = lines[0];
-
-      if (firstLine.length > maxLength) {
-        const truncated = firstLine.substring(0, maxLength);
-        await scmWriter.writeToInputBox(repository, truncated);
-      }
+    // Post-process: remove markdown wrappers and truncate title if too long
+    if (generatedMessage && !generationCancelled) {
+      const formattedMessage = formatGeneratedCommitMessage(generatedMessage, maxLength);
+      await scmWriter.writeToInputBox(repository, formattedMessage);
     }
 
   } catch (error: any) {
