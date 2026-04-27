@@ -2,7 +2,7 @@
   "name": "commit-message-auto",
   "displayName": "Commit Message Auto",
   "description": "Generate conventional commit messages using AI",
-  "version": "0.2.0",
+  "version": "1.0.1",
   "publisher": "lohaaa",
   "icon": "icon.png",
   "repository": {
